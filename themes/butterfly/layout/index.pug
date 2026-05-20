@@ -1,0 +1,83 @@
+extends includes/layout.pug
+
+block content
+  -
+    page.aside = false
+    const allPosts = site.posts && site.posts.data ? site.posts.data.slice() : page.posts.data.slice()
+    const getStickyWeight = article => Number(article.sticky || article.top || 0)
+    const getTimeValue = value => value && value.valueOf ? value.valueOf() : new Date(value || 0).getTime()
+    const sortByFreshness = (a, b) => getTimeValue(b.updated || b.date) - getTimeValue(a.updated || a.date)
+    const stickyPosts = allPosts.filter(article => getStickyWeight(article) > 0).sort((a, b) => getStickyWeight(b) - getStickyWeight(a) || sortByFreshness(a, b)).slice(0, 3)
+    const stickyPaths = new Set(stickyPosts.map(article => article.path))
+    const recentPosts = allPosts.filter(article => !stickyPaths.has(article.path)).sort(sortByFreshness).slice(0, config.index_generator && config.index_generator.per_page ? config.index_generator.per_page : 10)
+
+  mixin postCard(article, isPinned)
+    -
+      const link = article.link || article.path
+      const title = article.title || _p('no_title')
+      const cover = article.cover || theme.error_img.post_page
+      const coverIsImage = article.cover_type === 'img' || /\.(png|jpe?g|gif|svg|webp|avif)(\?.*)?$/i.test(cover)
+      const createdDate = date(article.date, config.date_format)
+      const updatedDate = date(article.updated || article.date, config.date_format)
+      const content = postDesc(article)
+      const categories = article.categories && article.categories.data ? article.categories.data : []
+      const tags = article.tags && article.tags.data ? article.tags.data.slice(0, 3) : []
+    article.od-post-card(class=isPinned ? 'od-post-featured' : 'od-post-row')
+      a.od-post-cover(href=url_for(link) title=title aria-label=title)
+        if coverIsImage
+          img(src=url_for(cover) onerror=`this.onerror=null;this.src='${url_for(theme.error_img.post_page)}'` alt=title loading="lazy")
+        else
+          span(style=`background: ${cover}`)
+      .od-post-body
+        .od-meta
+          if isPinned
+            span.od-pin 置顶
+          span 发布 #{createdDate}
+          if updatedDate !== createdDate
+            span 更新 #{updatedDate}
+          if categories.length
+            span #{categories[0].name}
+        a.od-post-title(href=url_for(link) title=title)= title
+        if content
+          p.od-excerpt!= content
+        if tags.length
+          .od-tags
+            each item in tags
+              span= item.name
+
+  .dimflip-home
+    .od-topbar
+      a.od-brand(href=url_for('/')) Dimflip
+      nav.od-nav(aria-label="Primary")
+        a(href=url_for('/')) 首页
+        a(href=url_for('/archives/')) 归档
+        a(href=url_for('/categories/')) 分类
+        a(href=url_for('/tags/')) 标签
+
+    header.od-hero
+      div
+        p.od-kicker Web3 / AI / Notes
+        h1.od-title 最近值得认真读的更新
+      p.od-intro 内容按更新节奏组织，置顶文章放在前面，新的记录按更新时间向下流动。每张卡片都保留主图、标题、摘要和时间，手机上也能顺手翻。
+
+    if stickyPosts.length
+      section.od-pinned
+        .od-section-head
+          h2 置顶文章
+          span #{stickyPosts.length} 篇精选
+        .od-pinned-grid
+          each article in stickyPosts
+            +postCard(article, true)
+
+    section.od-recent
+      .od-section-head
+        h2 最近更新
+        span #{recentPosts.length} 篇文章
+      if recentPosts.length
+        .od-recent-list
+          each article in recentPosts
+            +postCard(article, false)
+      else
+        .od-empty 暂时还没有文章。
+
+    include ./includes/pagination.pug

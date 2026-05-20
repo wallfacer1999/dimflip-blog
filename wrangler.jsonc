@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dimflip-blog",
+  "pages_build_output_dir": "public",
+  "compatibility_date": "2026-05-20",
+  "vars": {
+    "NODE_VERSION": "20"
+  }
+}

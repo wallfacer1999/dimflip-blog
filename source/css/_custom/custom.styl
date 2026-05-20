@@ -1,0 +1,12 @@
+body::before {
+  content: "© dimflip.com";   /* 水印文字 */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 5rem;
+  color: rgba(0, 0, 0, 0.08);   /* 半透明 */
+  white-space: nowrap;
+  pointer-events: none;         /* 避免挡住文字选择 */
+  z-index: 9999;
+}
