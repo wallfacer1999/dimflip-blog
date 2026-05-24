@@ -30,6 +30,7 @@ def main():
     parser.add_argument('--mode', choices=['draft', 'publish'], default='publish', help='draft=only generate md, publish=generate and deploy')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing markdown')
     parser.add_argument('--skip-if-exists', action='store_true', help='Skip rewrite when markdown already exists')
+    parser.add_argument('--authorized-repost', action='store_true', help='Confirm you have permission to save long-form source text')
     parser.add_argument('--clean', action='store_true', help='Run hexo clean before generate (publish mode defaults to clean)')
     args = parser.parse_args()
 
@@ -46,6 +47,8 @@ def main():
         x2md_cmd.append('--overwrite')
     if args.skip_if_exists:
         x2md_cmd.append('--skip-if-exists')
+    if args.authorized_repost:
+        x2md_cmd.append('--authorized-repost')
 
     x2md_res = run(x2md_cmd)
     if x2md_res.returncode != 0:
